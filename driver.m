@@ -8,32 +8,29 @@ files = {'./Data/exposures/img01.jpg','./Data/exposures/img02.jpg',...
 
 numFiles = 13;
 expTimes = [13, 10, 4, 3.2, 1, 0.8, 0.3, 1/4, 1/60, 1/80, 1/320, 1/400, 1/1000];
-images = zeros(768,1024,3,numFiles);
-channel = zeros(768,1024,numFiles);
-for i = 1:numFiles
-    images(:,:,:,i) = imread(char(files(i)));
-    channel(:,:,i) = images(:,:,1,i);
-end
 
-numPixels = 2000;
-pixels = [randi(768,numPixels,1) randi(1024,numPixels,1)];
+images = readImages(files);
 
-Z = zeros(numPixels,numFiles);
-for i = 1 : numPixels
-    pos = pixels(i,:);
-    for j = 1 : numFiles
-        Z(i,j) =  channel(pos(1),pos(2),j);
-    end
-end
+sampleNumPixels = 5000;
+
+Z = samplePixels(images,sampleNumPixels);
 
 zmin = min(Z(:));
 zmax = max(Z(:));
-w = ones(1,256);
 
-B = zeros(numPixels,numFiles);
+w = [1:128 128:-1:1];
+
+B = zeros(sampleNumPixels,numFiles);
 for i = 1: numFiles
     B(:,i) = log(expTimes(i));
 end
+
 l = 50;
 
-[g,lE] = gsolve(Z,B,l,w);
+[g,lE] = responseCurve(Z,B,l,w);
+plot(g(:,1),1:256);
+plot(g(:,2),1:256);
+plot(g(:,3),1:256);
+
+hdr = constructHDR(images,expTimes,w,g);
+imshow(hdr)
