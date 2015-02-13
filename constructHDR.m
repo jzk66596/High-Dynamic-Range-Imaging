@@ -1,18 +1,24 @@
-function [hdr] = constructHDR(images,expTimes,w,g)
+function [hdr_result] = constructHDR(images,expTimes,w,g)
+    
     imageSize = size(images(:,:,:,1));
-    hdr = zeros(imageSize);
+    hdr_result = zeros(imageSize);
     oneimage = zeros(imageSize);
     sum = zeros(imageSize);
     for i = 1 : length(expTimes)
         oneimage = images(:,:,:,i);
         w_matrix = w(oneimage+1);
         sum = sum + w_matrix;
-        oneimage(:,:,1) = g(oneimage(:,:,1)+1) - expTimes(i);
-        oneimage(:,:,2) = g(oneimage(:,:,2)+1) - expTimes(i);
-        oneimage(:,:,3) = g(oneimage(:,:,3)+1) - expTimes(i);
+        g1 = g(:,1);
+        oneimage(:,:,1) = g1(oneimage(:,:,1)+1) - log(expTimes(i));
+        g2 = g(:,2);
+        oneimage(:,:,2) = g2(oneimage(:,:,2)+1) - log(expTimes(i));
+        g3 = g(:,3);
+        oneimage(:,:,3) = g3(oneimage(:,:,3)+1) - log(expTimes(i));
 
-        hdr = hdr + w_matrix .* oneimage;
+        hdr_result = hdr_result + w_matrix .* oneimage;
     end
-    hdr = hdr./sum;
-    hdr = exp(hdr);
+    hdr_result = hdr_result./sum;
+    hdr_result = exp(hdr_result);
+    
+    %hdr_result = hdr(images,g(:,1),g(:,2),g(:,3),w, log(expTimes));
 end
